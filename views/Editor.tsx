@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Tag, ShoppingBag, Utensils, X, Plus, ChevronDown, Camera, Trash2, Link as LinkIcon } from 'lucide-react';
-import { Recipe } from '../types';
+import { Recipe } from '../lib/types';
 
 interface EditorViewProps {
   initialRecipe: Recipe;

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ShoppingBag, Utensils, Share, Check } from 'lucide-react';
-import { Recipe, AggregatedData } from '../types';
+import { Recipe, AggregatedData } from '../lib/types';
 
 interface AggregationViewProps {
   recipes: Recipe[];

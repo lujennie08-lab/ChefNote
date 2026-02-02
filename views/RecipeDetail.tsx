@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ShoppingBag, Utensils, ChevronDown, Link as LinkIcon, Copy, Check, ImageOff, ChefHat } from 'lucide-react';
-import { Recipe } from '../types';
+import { Recipe } from '../lib/types';
 
 interface RecipeDetailProps {
   recipe: Recipe;

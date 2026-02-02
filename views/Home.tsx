@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Search, List, Check, Plus } from 'lucide-react';
 import { RecipeCard } from '../components/RecipeCard';
-import { Recipe } from '../types';
+import { Recipe } from '../lib/types';
 
 interface HomeViewProps {
   recipes: Recipe[];

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { FileText, Camera, Plus, X, ChevronLeft, ArrowRight, AlertCircle } from 'lucide-react';
-import { GoogleGenAI, Type } from "@google/genai";
-import { Recipe } from '../types';
+import { Recipe } from '../lib/types';
 
 interface ImportSheetProps {
   onClose: () => void;
@@ -15,75 +14,56 @@ export const ImportSheet: React.FC<ImportSheetProps> = ({ onClose, onRecipeCreat
   const [inputText, setInputText] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Call Gemini API to parse text
+  // Call backend API to parse text with Gemini
   const handleSimulateAI = async () => {
     setView('loading');
     setErrorMessage('');
     
     try {
-      if (!process.env.API_KEY) {
-        throw new Error("API Key is missing in the environment variables.");
-      }
-
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: `Please parse the following text into a structured recipe. 
-        Extract the title, ingredients, seasonings, and cooking steps.
-        If the category is not clear, default to "家常菜".
-        
-        Text to parse:
-        ${inputText}`,
-        config: {
-          systemInstruction: "You are a professional recipe editor. Your goal is to extract structured culinary data from unstructured user text.",
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              title: { type: Type.STRING },
-              category: { 
-                type: Type.ARRAY, 
-                items: { type: Type.STRING } 
-              },
-              ingredients: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
-                  properties: {
-                    name: { type: Type.STRING },
-                    amount: { type: Type.STRING },
-                    unit: { type: Type.STRING },
-                  }
-                }
-              },
-              seasonings: {
-                type: Type.ARRAY,
-                items: { type: Type.STRING }
-              },
-              steps: {
-                type: Type.ARRAY,
-                items: { type: Type.STRING }
-              }
-            },
-            required: ["title", "ingredients", "steps"]
-          }
-        }
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: `Please parse the following text into a structured recipe. 
+          Extract the title, ingredients, seasonings, and cooking steps.
+          If the category is not clear, default to "家常菜".
+          Return ONLY valid JSON (no markdown code blocks).
+          
+          Text to parse:
+          ${inputText}`
+        })
       });
 
-      const jsonStr = response.text;
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to parse recipe');
+      }
+
+      const data = await response.json();
+      const jsonStr = data.text;
       
       if (jsonStr) {
-        const data = JSON.parse(jsonStr);
+        let parsed;
+        try {
+          parsed = JSON.parse(jsonStr);
+        } catch {
+          // Try to extract JSON from the response if it's wrapped in code blocks
+          const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            parsed = JSON.parse(jsonMatch[0]);
+          } else {
+            throw new Error('Failed to extract JSON from response');
+          }
+        }
         
         const newDraft: Recipe = {
           id: Date.now(),
-          title: data.title || 'AI识别食谱',
-          category: data.category && data.category.length > 0 ? data.category : ['家常菜'],
-          cover: '', // Leave blank as requested
-          ingredients: data.ingredients || [],
-          seasonings: data.seasonings || [],
-          steps: data.steps || [],
+          title: parsed.title || 'AI识别食谱',
+          category: parsed.category && parsed.category.length > 0 ? parsed.category : ['家常菜'],
+          cover: '',
+          ingredients: parsed.ingredients || [],
+          seasonings: parsed.seasonings || [],
+          steps: parsed.steps || [],
           link: '' 
         };
         
@@ -201,16 +181,9 @@ export const ImportSheet: React.FC<ImportSheetProps> = ({ onClose, onRecipeCreat
         )}
 
         {view === 'loading' && (
-          <div className="flex flex-col items-center py-8 space-y-6 animate-in fade-in duration-500">
-            <div className="relative">
-               <div className="w-16 h-16 border-4 border-emerald-100 border-t-emerald-600 rounded-full animate-spin" />
-               <div className="absolute inset-0 flex items-center justify-center">
-                 <div className="w-8 h-8 bg-emerald-50 rounded-full flex items-center justify-center">
-                   <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"/>
-                 </div>
-               </div>
-            </div>
-            <p className="text-emerald-800 font-medium animate-pulse text-lg">AI正在阅读食谱...</p>
+          <div className="flex flex-col items-center justify-center py-12 space-y-4">
+            <div className="w-12 h-12 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin" />
+            <p className="text-gray-600 text-sm">正在处理中...</p>
           </div>
         )}
 

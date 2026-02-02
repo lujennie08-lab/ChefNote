@@ -1,6 +1,6 @@
 import React from 'react';
 import { Check, Utensils } from 'lucide-react';
-import { Recipe } from '../types';
+import { Recipe } from '../lib/types';
 
 interface RecipeCardProps {
   recipe: Recipe;
