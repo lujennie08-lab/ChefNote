@@ -1,0 +1,7 @@
+{
+  "name": "ChefNote",
+  "description": "A Notion-style recipe manager and menu planner with AI capabilities.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
