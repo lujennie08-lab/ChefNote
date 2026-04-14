@@ -1,0 +1,12 @@
+{
+  "name": "chefnote-api",
+  "version": "1.0.0",
+  "description": "ChefNote API Server",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["recipe", "chefnote"],
+  "author": "",
+  "license": "ISC"
+}

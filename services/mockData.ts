@@ -7,7 +7,7 @@ export const INITIAL_RECIPES: Recipe[] = [
     id: 1,
     title: '番茄炒蛋',
     category: ['家常菜', '下饭菜'],
-    cover: 'https://picsum.photos/600/400?random=1',
+    cover: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&h=400&fit=crop',
     ingredients: [
       { name: '鸡蛋', amount: '3', unit: '个' },
       { name: '番茄', amount: '2', unit: '个' },
@@ -25,7 +25,7 @@ export const INITIAL_RECIPES: Recipe[] = [
     id: 2,
     title: '青椒肉丝',
     category: ['硬菜', '家常菜'],
-    cover: 'https://picsum.photos/600/400?random=2',
+    cover: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=600&h=400&fit=crop',
     ingredients: [
       { name: '猪瘦肉', amount: '200', unit: 'g' },
       { name: '青椒', amount: '3', unit: '个' },
@@ -42,7 +42,7 @@ export const INITIAL_RECIPES: Recipe[] = [
     id: 3,
     title: '紫菜蛋花汤',
     category: ['素菜', '汤羹'],
-    cover: 'https://picsum.photos/600/400?random=3',
+    cover: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&h=400&fit=crop',
     ingredients: [
       { name: '鸡蛋', amount: '1', unit: '个' },
       { name: '干紫菜', amount: '10', unit: 'g' }

@@ -1,0 +1,19 @@
+{
+  "envId": "chefnote-v1-6glzfl9g4e98cc89",
+  "region": "ap-shanghai",
+  "functionRoot": "./cloudfunctions",
+  "functions": [
+    {
+      "name": "chefnote-api",
+      "config": {
+        "timeout": 60,
+        "memorySize": 256,
+        "runtime": "Nodejs18.15"
+      }
+    }
+  ],
+  "hosting": {
+    "source": "dist",
+    "path": "/"
+  }
+}

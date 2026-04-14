@@ -1,10 +1,10 @@
 // API Configuration
 // Vercel 部署时，API 路径自动指向 /api
-// 本地开发时，使用 localhost:3001
+// 本地开发时，使用 api目录下的 Express 服务器
 
 const API_BASE = import.meta.env.PROD
   ? '/api'  // Vercel 生产环境：API 路由
-  : 'http://localhost:3001/api';  // 本地开发环境
+  : 'http://localhost:3000/api';  // 本地开发环境（api目录的Express服务器）
 
 export const API_ENDPOINTS = {
   RECIPES_LIST: `${API_BASE}/recipes`,

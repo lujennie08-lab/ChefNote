@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { HomeView } from './views/Home';
 import { EditorView } from './views/Editor';
 import { RecipeDetail } from './views/RecipeDetail';
@@ -6,6 +6,11 @@ import { ImportSheet } from './views/ImportSheet';
 import { AggregationView } from './views/Aggregation';
 import { Recipe, ScreenType } from './types';
 import { INITIAL_RECIPES, INITIAL_CATEGORIES } from './services/mockData';
+import { RecipeAPI } from './services/api';
+import { RecipeAPISDK, initCloudBase } from './services/cloudbaseApi';
+
+// Use CloudBase SDK for production, fallback to HTTP API for dev
+const useCloudBaseSDK = import.meta.env.MODE === 'production';
 
 const App = () => {
   // --- State ---
@@ -14,10 +19,45 @@ const App = () => {
   const [categories, setCategories] = useState<string[]>(INITIAL_CATEGORIES);
   const [selectedRecipeIds, setSelectedRecipeIds] = useState<number[]>([]);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Track which recipe is currently being viewed or edited
   const [viewingRecipe, setViewingRecipe] = useState<Recipe | null>(null);
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
+
+  // Load recipes from backend on mount
+  useEffect(() => {
+    const loadRecipes = async () => {
+      try {
+        // Initialize CloudBase and load recipes
+        if (useCloudBaseSDK) {
+          await initCloudBase();
+        }
+        
+        const api = useCloudBaseSDK ? RecipeAPISDK : RecipeAPI;
+        const response = await api.getAll();
+        const data = response.data || [];
+        if (Array.isArray(data) && data.length > 0) {
+          setRecipes(data);
+          // Extract categories from recipes
+          const allCategories = new Set<string>();
+          data.forEach(recipe => {
+            recipe.category?.forEach(cat => allCategories.add(cat));
+          });
+          if (allCategories.size > 0) {
+            setCategories(Array.from(allCategories));
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load recipes:', error);
+        // Fall back to initial recipes if API fails
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadRecipes();
+  }, []);
 
   // --- Handlers ---
   const toggleSelection = (id: number) => {
@@ -37,36 +77,93 @@ const App = () => {
      }
   };
 
-  const handleSaveRecipe = (recipe: Recipe) => {
-    // Requirements check: Add new categories if they don't exist
-    const newCategories = [...categories];
-    let hasChanges = false;
-    
-    recipe.category.forEach(cat => {
-      if (!newCategories.includes(cat)) {
-        newCategories.push(cat);
-        hasChanges = true;
-      }
-    });
-    
-    if (hasChanges) {
-      setCategories(newCategories);
-    }
+  const handleSaveRecipe = async (recipe: Recipe) => {
+    try {
+      // Determine if this is a new recipe or an update
+      const existingIndex = recipes.findIndex(r => r.id === recipe.id);
+      const isNewRecipe = existingIndex === -1;
 
-    const existingIndex = recipes.findIndex(r => r.id === recipe.id);
-    if (existingIndex >= 0) {
-      const updated = [...recipes];
-      updated[existingIndex] = recipe;
-      setRecipes(updated);
-      // Update viewing recipe as well since we are returning to detail view
-      setViewingRecipe(recipe);
-    } else {
-      setRecipes([recipe, ...recipes]);
-      setViewingRecipe(recipe);
+      console.log('Saving recipe:', { recipe, isNewRecipe, existingIndex });
+
+      // Call API to save the recipe
+      const api = useCloudBaseSDK ? RecipeAPISDK : RecipeAPI;
+      let apiResponse;
+      if (isNewRecipe) {
+        // Create new recipe (don't send ID for new recipes)
+        const { id, ...recipeData } = recipe;
+        apiResponse = await api.create(recipeData);
+      } else {
+        // Update existing recipe
+        apiResponse = await api.update(recipe.id.toString(), recipe);
+      }
+
+      console.log('Raw API response:', apiResponse);
+
+      // Extract data from API response - handle both response objects and direct data
+      let savedRecipe = null;
+      if (apiResponse && typeof apiResponse === 'object') {
+        if (apiResponse.code === 0 || apiResponse.code === undefined) {
+          // Success - extract data
+          savedRecipe = apiResponse.data || apiResponse;
+        } else {
+          throw new Error(apiResponse.message || 'Save failed');
+        }
+      } else {
+        savedRecipe = apiResponse;
+      }
+
+      console.log('Processed savedRecipe:', savedRecipe);
+
+      // Validate saved recipe has necessary fields
+      if (!savedRecipe || typeof savedRecipe !== 'object') {
+        throw new Error('Invalid response data');
+      }
+
+      // Ensure recipe has an id
+      if (!savedRecipe.id && !savedRecipe._id) {
+        savedRecipe.id = recipe.id;
+      }
+      if (savedRecipe._id && !savedRecipe.id) {
+        savedRecipe.id = savedRecipe._id;
+      }
+
+      // Update local state with saved recipe
+      const newCategories = [...categories];
+      let hasChanges = false;
+      
+      (savedRecipe.category || []).forEach((cat: string) => {
+        if (!newCategories.includes(cat)) {
+          newCategories.push(cat);
+          hasChanges = true;
+        }
+      });
+      
+      if (hasChanges) {
+        setCategories(newCategories);
+      }
+
+      if (isNewRecipe) {
+        // Add new recipe to list
+        setRecipes([savedRecipe, ...recipes]);
+      } else {
+        // Update existing recipe
+        const updated = [...recipes];
+        updated[existingIndex] = savedRecipe;
+        setRecipes(updated);
+      }
+      
+      // Always set viewing recipe before changing screen
+      setViewingRecipe(savedRecipe);
+      setEditingRecipe(null);
+      
+      // Change screen last, after all state is set
+      setTimeout(() => {
+        setScreen('detail');
+      }, 0);
+    } catch (error) {
+      console.error('Failed to save recipe:', error);
+      alert('保存失败，请重试：' + (error instanceof Error ? error.message : String(error)));
     }
-    
-    setEditingRecipe(null);
-    setScreen('detail');
   };
 
   const handleCreateRequest = (recipe: Recipe) => {

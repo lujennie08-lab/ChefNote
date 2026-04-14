@@ -1,0 +1,6 @@
+{
+  "envId": "chefnote-v1-6glzfl9g4e98cc89",
+  "cloudrun": {
+    "name": "chefnote-api"
+  }
+}

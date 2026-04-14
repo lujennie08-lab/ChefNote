@@ -1,0 +1,169 @@
+[
+  {
+    "id": 1,
+    "title": "番茄炒蛋",
+    "category": [
+      "素菜",
+      "硬菜"
+    ],
+    "cover": "http://localhost:3001/uploads/IMG_8465-1770102976250.JPG",
+    "ingredients": [
+      {
+        "name": "鸡蛋",
+        "amount": "3",
+        "unit": "个"
+      },
+      {
+        "name": "番茄",
+        "amount": "2",
+        "unit": "个"
+      },
+      {
+        "name": "葱花",
+        "amount": "10",
+        "unit": "g"
+      }
+    ],
+    "seasonings": [
+      "油",
+      "盐",
+      "糖",
+      "番茄酱"
+    ],
+    "steps": [
+      "鸡蛋打散炒熟备用。",
+      "番茄切块炒出汁。",
+      "混合翻炒加调料。"
+    ],
+    "link": "https://www.xiaohongshu.com/explore111"
+  },
+  {
+    "id": 2,
+    "title": "青椒肉丝",
+    "category": [
+      "硬菜",
+      "家常菜"
+    ],
+    "cover": "https://picsum.photos/600/400?random=2",
+    "ingredients": [
+      {
+        "name": "猪瘦肉",
+        "amount": "200",
+        "unit": "g"
+      },
+      {
+        "name": "青椒",
+        "amount": "3",
+        "unit": "个"
+      },
+      {
+        "name": "姜",
+        "amount": "5",
+        "unit": "g"
+      }
+    ],
+    "seasonings": [
+      "油",
+      "盐",
+      "生抽",
+      "料酒",
+      "淀粉"
+    ],
+    "steps": [
+      "肉丝腌制。",
+      "青椒切丝。",
+      "大火快炒。"
+    ]
+  },
+  {
+    "id": 3,
+    "title": "紫菜蛋花汤",
+    "category": [
+      "素菜",
+      "汤羹"
+    ],
+    "cover": "https://picsum.photos/600/400?random=3",
+    "ingredients": [
+      {
+        "name": "鸡蛋",
+        "amount": "1",
+        "unit": "个"
+      },
+      {
+        "name": "干紫菜",
+        "amount": "10",
+        "unit": "g"
+      }
+    ],
+    "seasonings": [
+      "盐",
+      "香油",
+      "葱花"
+    ],
+    "steps": [
+      "水烧开加紫菜。",
+      "打入蛋花。",
+      "调味出锅。"
+    ]
+  },
+  {
+    "id": 4,
+    "title": "蜜汁叉烧肉",
+    "category": [
+      "硬菜"
+    ],
+    "cover": "http://localhost:3001/uploads/IMG_7878-1770102990756.JPG",
+    "ingredients": [
+      {
+        "amount": "600",
+        "name": "猪前腿肉",
+        "unit": "克"
+      },
+      {
+        "amount": "20",
+        "name": "蒜末",
+        "unit": "克"
+      },
+      {
+        "amount": "10",
+        "name": "姜",
+        "unit": "克"
+      }
+    ],
+    "seasonings": [
+      "生抽1勺",
+      "老抽1勺",
+      "蚝油1勺",
+      "蜜汁叉烧酱3勺"
+    ],
+    "steps": [
+      "把600克前腿肉、20克蒜末、10克姜丝放一起，再加生抽1勺、老抽1勺、蚝油1勺、蜜汁叉烧酱3勺进行腌制，建议腌制3小时以上，腌制一晚上效果更佳。",
+      "使用空气炸锅180度烤15分钟，取出翻面，再继续以180度烤20分钟。",
+      "将烤好的叉烧肉切成小块，把腌制剩余的料汁倒入锅中炒至浓稠，最后淋在叉烧肉上。"
+    ],
+    "link": "1234567"
+  },
+  {
+    "id": 5,
+    "title": "test123",
+    "category": [
+      "家常菜",
+      "硬菜"
+    ],
+    "cover": "https://picsum.photos/600/400?random=5",
+    "ingredients": [
+      {
+        "name": "xxxx",
+        "amount": "1",
+        "unit": "g"
+      }
+    ],
+    "seasonings": [
+      "dd"
+    ],
+    "steps": [
+      "123456"
+    ],
+    "link": ""
+  }
+]

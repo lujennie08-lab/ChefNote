@@ -9,8 +9,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@cloudbase/js-sdk": "^2.25.3",
-    "@cloudbase/node-sdk": "^3.17.0",
     "@google/genai": "^1.39.0",
     "@vercel/node": "^5.1.2",
     "cors": "^2.8.6",
