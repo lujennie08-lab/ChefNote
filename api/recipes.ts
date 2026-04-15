@@ -1,8 +1,110 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { MongoClient } from 'mongodb';
 
-// 内存存储（注意：Vercel Serverless 函数每次部署后会重置）
-// 生产环境建议使用 Vercel KV 或外部数据库
-let recipes: any[] = [
+const MONGODB_URI = process.env.MONGODB_URI;
+const DB_NAME = 'chefnote';
+const COLLECTION = 'recipes';
+
+// Serverless 连接复用——避免每次请求都新建连接
+let cachedClient: MongoClient | null = null;
+
+async function getCollection() {
+  if (!MONGODB_URI) throw new Error('MONGODB_URI environment variable is not set');
+  if (!cachedClient) {
+    cachedClient = new MongoClient(MONGODB_URI);
+    await cachedClient.connect();
+  }
+  return cachedClient.db(DB_NAME).collection(COLLECTION);
+}
+
+function setCorsHeaders(res: VercelResponse) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+}
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  setCorsHeaders(res);
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
+  const { id, category, q } = req.query;
+
+  try {
+    const col = await getCollection();
+
+    // GET /api/recipes — list / search / filter
+    if (req.method === 'GET' && !id) {
+      const filter: any = {};
+      if (category && typeof category === 'string') {
+        filter.category = { $in: category.split(',') };
+      }
+      if (q && typeof q === 'string') {
+        const re = { $regex: q, $options: 'i' };
+        filter.$or = [{ title: re }, { 'ingredients.name': re }];
+      }
+      const recipes = await col.find(filter).sort({ id: -1 }).toArray();
+      return res.status(200).json({ code: 0, data: recipes, message: 'Success' });
+    }
+
+    // GET /api/recipes/:id
+    if (req.method === 'GET' && id) {
+      const numId = Number(id);
+      const recipe = await col.findOne({ id: isNaN(numId) ? id : numId });
+      if (!recipe) return res.status(404).json({ code: 404, data: null, message: 'Recipe not found' });
+      return res.status(200).json({ code: 0, data: recipe, message: 'Success' });
+    }
+
+    // POST /api/recipes — create
+    if (req.method === 'POST') {
+      if (!req.body?.title) {
+        return res.status(400).json({ code: 400, data: null, message: 'Title is required' });
+      }
+      // 生成递增数字 ID
+      const last = await col.find().sort({ id: -1 }).limit(1).toArray();
+      const newId = last.length > 0 ? (Number(last[0].id) || 0) + 1 : 1;
+      const newRecipe = {
+        ...req.body,
+        id: newId,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      await col.insertOne(newRecipe);
+      return res.status(201).json({ code: 0, data: newRecipe, message: 'Success' });
+    }
+
+    // PUT /api/recipes/:id — update
+    if (req.method === 'PUT' && id) {
+      const numId = Number(id);
+      const query = { id: isNaN(numId) ? id : numId };
+      const existing = await col.findOne(query);
+      if (!existing) return res.status(404).json({ code: 404, data: null, message: 'Recipe not found' });
+      const updated = {
+        ...existing,
+        ...req.body,
+        id: existing.id,
+        _id: existing._id,
+        createdAt: existing.createdAt,
+        updatedAt: new Date().toISOString(),
+      };
+      await col.replaceOne(query, updated);
+      return res.status(200).json({ code: 0, data: updated, message: 'Success' });
+    }
+
+    // DELETE /api/recipes/:id
+    if (req.method === 'DELETE' && id) {
+      const numId = Number(id);
+      await col.deleteOne({ id: isNaN(numId) ? id : numId });
+      return res.status(200).json({ code: 0, data: null, message: 'Success' });
+    }
+
+    return res.status(404).json({ code: 404, data: null, message: 'Route not found' });
+
+  } catch (error: any) {
+    console.error('API Error:', error);
+    cachedClient = null; // 连接出错时重置，下次重连
+    return res.status(500).json({ code: -1, data: null, message: error.message || 'Internal Server Error' });
+  }
+}
   {
     _id: '1',
     id: 1,
