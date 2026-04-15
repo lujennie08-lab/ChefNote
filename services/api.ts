@@ -75,28 +75,12 @@ export const RecipeAPI = {
       method: 'DELETE',
     }),
 
-  // 上传图片（生产环境：云函数 /api/upload）
-  uploadImage: async (file: File) => {
-    const reader = new FileReader();
-    return new Promise<string>((resolve, reject) => {
-      reader.onload = async () => {
-        try {
-          const base64 = (reader.result as string).split(',')[1];
-          const res = await fetch(`${API_BASE}/upload`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              filename: file.name,
-              fileContentBase64: base64,
-            }),
-          });
-          const data = await res.json();
-          if (data.code === 0 && data.url) resolve(data.url);
-          else reject(data.message || '上传失败');
-        } catch (err) {
-          reject(err);
-        }
-      };
+  // 上传图片：直接转为 base64 data URL，无需服务端存储
+  // Vercel Serverless 无持久化文件系统，data URL 是最简可靠方案
+  uploadImage: (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });

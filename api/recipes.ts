@@ -5,7 +5,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 let recipes: any[] = [
   {
     _id: '1',
-    id: '1',
+    id: 1,
     title: '番茄炒蛋',
     category: ['家常菜', '快手菜'],
     cover: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&h=400&fit=crop',
@@ -21,7 +21,7 @@ let recipes: any[] = [
   },
   {
     _id: '2',
-    id: '2',
+    id: 2,
     title: '红烧肉',
     category: ['硬菜', '家常菜'],
     cover: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=600&h=400&fit=crop',
@@ -37,9 +37,10 @@ let recipes: any[] = [
   }
 ];
 
-// 生成唯一ID
-function generateId(): string {
-  return Date.now().toString(36) + Math.random().toString(36).substr(2);
+// 生成递增数字ID（与前端 types.ts 的 id: number 保持一致）
+let nextId = 3;
+function generateId(): number {
+  return nextId++;
 }
 
 // CORS 头
@@ -109,17 +110,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method === 'POST') {
       const { title, category: cats, cover, ingredients, seasonings, steps, link } = req.body;
 
-      if (!title || !cover) {
+      if (!title) {
         return res.status(400).json({
           code: 400,
           data: null,
-          message: 'Title and cover are required'
+          message: 'Title is required'
         });
       }
 
       const newId = generateId();
       const newRecipe = {
-        _id: newId,
+        _id: String(newId),
         id: newId,
         title,
         category: Array.isArray(cats) ? cats : (cats ? [cats] : []),

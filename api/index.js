@@ -142,6 +142,17 @@ app.delete('/api/recipes/:id', (req, res) => {
   }
 });
 
+// Image upload endpoint
+// On Vercel there is no persistent filesystem; the client now handles
+// uploads as data URLs directly. This route exists as a fallback only.
+app.post('/api/upload', (req, res) => {
+  res.status(400).json({
+    code: -1,
+    data: null,
+    message: '请在客户端直接使用 data URL 上传图片'
+  });
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({

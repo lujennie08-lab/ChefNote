@@ -1,6 +1,6 @@
 {
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index.js" },
+    { "source": "/api/recipes/:id", "destination": "/api/recipes?id=:id" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "headers": [
