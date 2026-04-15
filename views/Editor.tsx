@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Tag, ShoppingBag, Utensils, X, Plus, ChevronDown, Camera, Trash2, Link as LinkIcon } from 'lucide-react';
 import { Recipe } from '../types';
-import { RecipeAPISDK } from '../services/cloudbaseApi';
+import { RecipeAPI } from '../services/api';
 
 interface EditorViewProps {
   initialRecipe: Recipe;
@@ -65,7 +65,7 @@ export const EditorView: React.FC<EditorViewProps> = ({ initialRecipe, categorie
     }
   };
 
-  // Image Upload Logic - Upload to CloudBase or local backend
+  // Image upload uses the unified API layer for both local and production envs.
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -75,69 +75,9 @@ export const EditorView: React.FC<EditorViewProps> = ({ initialRecipe, categorie
         setForm({ ...form, cover: localPreview });
 
         console.log('📤 Starting upload:', file.name, 'Size:', file.size, 'bytes');
-
-        // Use CloudBase SDK in production, local backend in development
-        const isProduction = import.meta.env.MODE === 'production';
-        
-        if (isProduction) {
-          // Upload to CloudBase
-          const imageUrl = await RecipeAPISDK.uploadImage(file);
-          console.log('✅ CloudBase upload successful:', imageUrl);
-          setForm({ ...form, cover: imageUrl });
-        } else {
-          // Upload to local backend
-          const reader = new FileReader();
-          reader.onload = async (event) => {
-            try {
-              const base64Data = event.target?.result as string;
-              
-              console.log('📝 Base64 data prepared, length:', base64Data.length);
-              
-              const response = await fetch('http://localhost:3001/api/upload', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  filename: file.name,
-                  fileContentBase64: base64Data.split(',')[1] || base64Data,
-                }),
-              });
-
-              if (!response.ok) {
-                const errorText = await response.text();
-                console.error('❌ Upload response error:', response.status, errorText);
-                throw new Error(`Upload failed: ${response.statusText}`);
-              }
-
-              const result = await response.json();
-              
-              console.log('✅ Upload response received:');
-              console.log('   Code:', result.code);
-              console.log('   URL:', result.url);
-              console.log('   Message:', result.message);
-
-              if (result.code === 0 && result.url) {
-                const imageUrl = result.url;
-                console.log('✅ Setting cover to:', imageUrl);
-                setForm({ ...form, cover: imageUrl });
-              } else {
-                throw new Error('Upload returned error: ' + result.message);
-              }
-            } catch (error) {
-              console.error('❌ Failed to upload image:', error);
-              alert('图片上传失败: ' + (error instanceof Error ? error.message : '未知错误'));
-            }
-          };
-          
-          reader.onerror = (error) => {
-            console.error('❌ FileReader error:', error);
-            alert('图片读取失败');
-          };
-          
-          console.log('📖 Starting to read file as data URL...');
-          reader.readAsDataURL(file);
-        }
+        const imageUrl = await RecipeAPI.uploadImage(file);
+        console.log('✅ Upload successful:', imageUrl);
+        setForm({ ...form, cover: imageUrl });
       } catch (error) {
         console.error('❌ Upload error:', error);
         alert('图片上传失败: ' + (error instanceof Error ? error.message : '未知错误'));

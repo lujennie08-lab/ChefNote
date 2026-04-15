@@ -7,10 +7,6 @@ import { AggregationView } from './views/Aggregation';
 import { Recipe, ScreenType } from './types';
 import { INITIAL_RECIPES, INITIAL_CATEGORIES } from './services/mockData';
 import { RecipeAPI } from './services/api';
-import { RecipeAPISDK, initCloudBase } from './services/cloudbaseApi';
-
-// Use CloudBase SDK for production, fallback to HTTP API for dev
-const useCloudBaseSDK = import.meta.env.MODE === 'production';
 
 const App = () => {
   // --- State ---
@@ -29,13 +25,7 @@ const App = () => {
   useEffect(() => {
     const loadRecipes = async () => {
       try {
-        // Initialize CloudBase and load recipes
-        if (useCloudBaseSDK) {
-          await initCloudBase();
-        }
-        
-        const api = useCloudBaseSDK ? RecipeAPISDK : RecipeAPI;
-        const response = await api.getAll();
+        const response = await RecipeAPI.getAll();
         const data = response.data || [];
         if (Array.isArray(data) && data.length > 0) {
           setRecipes(data);
@@ -86,15 +76,14 @@ const App = () => {
       console.log('Saving recipe:', { recipe, isNewRecipe, existingIndex });
 
       // Call API to save the recipe
-      const api = useCloudBaseSDK ? RecipeAPISDK : RecipeAPI;
       let apiResponse;
       if (isNewRecipe) {
         // Create new recipe (don't send ID for new recipes)
         const { id, ...recipeData } = recipe;
-        apiResponse = await api.create(recipeData);
+        apiResponse = await RecipeAPI.create(recipeData);
       } else {
         // Update existing recipe
-        apiResponse = await api.update(recipe.id.toString(), recipe);
+        apiResponse = await RecipeAPI.update(recipe.id, recipe);
       }
 
       console.log('Raw API response:', apiResponse);
